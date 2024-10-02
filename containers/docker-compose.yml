@@ -1,0 +1,56 @@
+---
+- name: Pull Git Repository, Build and Run Docker Image
+  hosts: all
+  become: yes  # Use this if you need to run commands as root
+  vars:
+    git_repo: 'https://github.com/your_username/your_repo.git'
+    git_dest: '/path/to/clone/repo'  # Local path to clone the repo
+    docker_image_name: 'your_image_name'
+    docker_container_name: 'your_container_name'  # Name for the running container
+    dockerfile_path: 'Dockerfile'  # Path to Dockerfile inside the repo
+    docker_run_args:  # Additional arguments for running the container (optional)
+      - '--rm'       # Automatically remove the container when it exits
+      - '-p 80:80'   # Port mapping (host:container)
+
+  tasks:
+    - name: Ensure git is installed
+      apt:
+        name: git
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Clone the Git repository
+      git:
+        repo: "{{ git_repo }}"
+        dest: "{{ git_dest }}"
+        version: master  # Specify branch or tag if needed
+      register: git_clone
+
+    - name: Build Docker image
+      docker_image:
+        path: "{{ git_dest }}"
+        name: "{{ docker_image_name }}"
+        state: present
+      when: git_clone.changed  # Only build if the repo was cloned/updated
+
+    - name: Stop and remove existing container (if it exists)
+      docker_container:
+        name: "{{ docker_container_name }}"
+        state: absent
+
+    - name: Run Docker container
+      docker_container:
+        name: "{{ docker_container_name }}"
+        image: "{{ docker_image_name }}"
+        state: started
+        restart_policy: always  # Optional: restart policy for the container
+        published_ports:
+          - "80:80"  # Map port 80 on the host to port 80 in the container
+        command: /path/to/your/start/script.sh  # Optional: Command to run in the container
+      when: git_clone.changed  # Run only if repo was changed

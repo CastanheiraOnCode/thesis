@@ -1,145 +1,51 @@
 ---
-- name: Set up Elasticsearch, Kibana, and Fleet Server using Docker and Fleet API
-  hosts: localhost
-  gather_facts: no
+- name: Pull Git Repository, Build and Run Docker Containers for ELK Stack
+  hosts: all
+  become: yes  # Use this if you need to run commands as root
+  vars:
+    git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
+    git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
+    docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
+
   tasks:
-
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    # Step 1: Build and run Elasticsearch container
-    - name: Build Elasticsearch Docker image
-      docker_image:
-        path: /path/to/elasticsearch/Dockerfile  # Replace with the actual path to your Elasticsearch Dockerfile
-        name: elasticsearch
-        tag: "8.15.1"
+    - name: Ensure git is installed
+      apt:
+        name: git
         state: present
+      when: ansible_os_family == "Debian"
 
-    - name: Run Elasticsearch container
-      docker_container:
-        name: elasticsearch
-        image: elasticsearch:8.15.1
-        state: started
-        ports:
-          - "9200:9200"
-          - "9300:9300"
-        env:
-          discovery.type: "single-node"
-          xpack.security.enabled: "false"
-        restart_policy: always
-
-    # Step 2: Build and run Kibana container
-    - name: Build Kibana Docker image
-      docker_image:
-        path: /path/to/kibana/Dockerfile  # Replace with the actual path to your Kibana Dockerfile
-        name: kibana
-        tag: "8.15.1"
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
         state: present
+      when: ansible_os_family == "Debian"
 
-    - name: Run Kibana container
-      docker_container:
-        name: kibana
-        image: kibana:8.15.1
-        state: started
-        ports:
-          - "5601:5601"
-        env:
-          ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
-          xpack.security.enabled: "false"
-        restart_policy: always
-        links:
-          - "elasticsearch:elasticsearch"
-
-    # Step 3: Wait for Kibana to be ready
-    - name: Wait for Kibana to be ready
-      uri:
-        url: "http://localhost:5601/api/status"
-        method: GET
-        retries: 20
-        delay: 15
-        register: kibana_status
-        until: kibana_status.status == 200
-
-    # Step 4: Generate Fleet service token via Elasticsearch API
-    - name: Generate service token for Fleet Server
-      uri:
-        url: "http://localhost:9200/_security/service/elastic/fleet-server/credential/token"
-        method: POST
-        body_format: json
-        headers:
-          Content-Type: "application/json"
-        return_content: yes
-      register: fleet_service_token_response
-
-    - name: Extract Fleet Service Token
-      set_fact:
-        fleet_service_token: "{{ fleet_service_token_response.json.token.value }}"
-
-    # Step 5: Create Fleet Server Policy via Kibana API
-    - name: Create Fleet Server Policy
-      uri:
-        url: "http://localhost:5601/api/fleet/agent_policies"
-        method: POST
-        body:
-          {
-            "name": "Fleet Server Policy",
-            "namespace": "default",
-            "is_default_fleet_server": true
-          }
-        headers:
-          kbn-xsrf: "true"
-          Content-Type: "application/json"
-        body_format: json
-        return_content: yes
-      register: fleet_policy_response
-
-    - name: Extract Fleet Server Policy ID
-      set_fact:
-        fleet_policy_id: "{{ fleet_policy_response.json.item.id }}"
-
-    # Step 6: Generate Fleet Enrollment Token via Kibana API
-    - name: Generate Fleet Enrollment Token
-      uri:
-        url: "http://localhost:5601/api/fleet/enrollment_api_keys"
-        method: POST
-        body:
-          {
-            "policy_id": "{{ fleet_policy_id }}"
-          }
-        headers:
-          kbn-xsrf: "true"
-          Content-Type: "application/json"
-        body_format: json
-        return_content: yes
-      register: enrollment_token_response
-
-    - name: Extract Fleet Enrollment Token
-      set_fact:
-        enrollment_token: "{{ enrollment_token_response.json.item.api_key }}"
-
-    # Step 7: Build and run Fleet Server container
-    - name: Build Fleet Server Docker image
-      docker_image:
-        path: /path/to/fleet-server/Dockerfile  # Replace with the actual path to your Fleet Server Dockerfile
-        name: fleet-server
-        tag: "8.15.1"
+    - name: Ensure Docker Compose-v2 is installed
+      apt:
+        name: docker-compose-v2
         state: present
+      when: ansible_os_family == "Debian"
 
-    - name: Run Fleet Server container
-      docker_container:
-        name: fleet-server
-        image: fleet-server:8.15.1
-        state: started
-        ports:
-          - "8220:8220"
-        env:
-          FLEET_ENROLLMENT_TOKEN: "{{ enrollment_token }}"
-          FLEET_SERVER_POLICY: "{{ fleet_policy_id }}"
-          FLEET_SERVER_ES: "http://elasticsearch:9200"
-        links:
-          - "elasticsearch:elasticsearch"
-          - "kibana:kibana"
-        restart_policy: always
+    - name: Clone the Git repository
+      git:
+        repo: "{{ git_repo }}"
+        dest: "{{ git_dest }}"
+        version: main  # Specify branch or tag if needed
+      register: git_clone
+
+    - name: Build and run Docker containers using Docker Compose
+      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
+      args:
+        chdir: "{{ git_dest }}"  # Run this command in the cloned repo directory
+
+    - name: Wait for Elasticsearch to become available
+      wait_for:
+        port: 9200
+        delay: 10
+        timeout: 60
+
+    - name: Wait for Kibana to become available
+      wait_for:
+        port: 5601
+        delay: 10
+        timeout: 60

@@ -1,0 +1,15 @@
+# Use the official Elasticsearch image from Docker Hub
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+
+# Set necessary environment variables for Elasticsearch
+ENV discovery.type=single-node
+ENV xpack.security.enabled=false
+
+# Expose necessary ports
+EXPOSE 9200 9300
+
+# Set the entry point for Elasticsearch
+ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
+
+# Start Elasticsearch
+CMD ["eswrapper"]

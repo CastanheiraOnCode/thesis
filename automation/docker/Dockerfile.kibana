@@ -10,5 +10,5 @@ EXPOSE 5601
 # Set the entry point for Kibana
 ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/kibana-docker"]
 
-# Start Kibana
-CMD ["--no-warnings"]
+# Start Kibana without any extra options
+CMD []

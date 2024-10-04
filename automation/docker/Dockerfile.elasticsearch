@@ -1,16 +1,29 @@
-# Use the official Elasticsearch image from Docker Hub
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.15.1
+version: '3.8'
 
-# Set necessary environment variables for Elasticsearch
-ENV discovery.type=single-node
-ENV xpack.security.enabled=true  # Enable security
-ENV ELASTIC_PASSWORD=elastic  # Set the password for the elastic user
+services:
+  elasticsearch:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
 
-# Expose necessary ports
-EXPOSE 9200 9300
+  kibana:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
 
-# Set the entry point for Elasticsearch
-ENTRYPOINT ["/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
-
-# Start Elasticsearch
-CMD ["eswrapper"]
+volumes:
+  esdata:

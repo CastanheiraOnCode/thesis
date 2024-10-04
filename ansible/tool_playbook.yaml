@@ -8,15 +8,17 @@
     docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
     fleet_server_image : "automation_fleet"
     elastic_agent_image: "automation_agent"
-    elasticsearch_url: "http://localhost:9200"
+    elasticsearch_url: "https://localhost:9200"
     kibana_url: "http://localhost:5601"
     fleet_server_port : 8220
     elastic_agent_port: 8221
     kibana_api_url: "{{ kibana_url }}/api/fleet/agent_policies"
     elastic_username: "elastic"
-    elastic_password: "elastic"
+    elastic_password: "elastico"
     kibana_system_password: "elastic"  # Password for the kibana_system user
-
+    service_account_name: "dev"  # Name for the service account
+    service_account_token: ""  # Variable to store the token
+    ca_cert_path: "/home/joao-tese/repo/http_ca.crt"  # Local path to store the CA certificate
 
 
   tasks:
@@ -55,11 +57,50 @@
         port: 9200
         delay: 10
         timeout: 60
+    
+    - name: Copy CA certificate from Elasticsearch container
+      command: docker cp es01:/usr/share/elasticsearch/config/certs/http_ca.crt {{ ca_cert_path }}
 
+    - name: Create a service account for Kibana
+      uri:
+        url: "{{ elasticsearch_url }}/_security/service/elastic/credentials"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          Authorization: Basic "{{ elastic_username }}:{{ elastic_password | b64encode }}"
+        body: |
+          {
+            "service_account": "{{ service_account_name }}"
+          }
+        body_format: json
+        status_code: 200
+      register: service_account_creation
 
-   # - name: Debug Kibana password configuration response
-   #   debug:
-   #     msg: "Kibana password configuration response: {{ kibana_password_response.json }}"
+    - name: Obtain the service account token
+      uri:
+        url: "{{ elasticsearch_url }}/_security/service/elastic/credentials"
+        method: GET
+        headers:
+          Content-Type: "application/json"
+          Authorization: Basic "{{ elastic_username }}:{{ elastic_password | b64encode }}"
+        return_content: yes
+      register: service_account_token_response
+
+    - name: Set service account token variable
+      set_fact:
+        service_account_token: "{{ service_account_token_response.json.token }}"
+
+    - name: Update Docker Compose file with service account token
+      lineinfile:
+        path: "{{ git_dest }}/{{ docker_compose_file }}"
+        regexp: '^\\s*- ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN=.*'
+        line: "- ELASTICSEARCH_SERVICE_ACCOUNT_TOKEN={{ service_account_token }}"
+        state: present
+
+    - name: Restart Docker containers to apply changes
+      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
+      args:
+        chdir: "{{ git_dest }}"
 
     - name: Wait for Kibana to become available
       wait_for:

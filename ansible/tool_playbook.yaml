@@ -57,9 +57,9 @@
         timeout: 60
 
 
-    - name: Debug Kibana password configuration response
-      debug:
-        msg: "Kibana password configuration response: {{ kibana_password_response.json }}"
+   # - name: Debug Kibana password configuration response
+   #   debug:
+   #     msg: "Kibana password configuration response: {{ kibana_password_response.json }}"
 
     - name: Wait for Kibana to become available
       wait_for:

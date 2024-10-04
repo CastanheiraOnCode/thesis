@@ -1,21 +1,18 @@
 ---
 - name: Pull Git Repository, Build and Run Docker Containers for ELK Stack
   hosts: all
-  become: yes  # Use this if you need to run commands as root
+  become: yes
   vars:
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
-    git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
-    docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
-    fleet_server_image : "automation_fleet"
-    elastic_agent_image: "automation_agent"
+    git_dest: '/home/joao-tese/repo'
+    docker_compose_file: 'automation/docker-compose.yml'
     elasticsearch_url: "http://localhost:9200"
     kibana_url: "http://localhost:5601"
-    fleet_server_port : 8220
-    elastic_agent_port: 8221
     kibana_api_url: "{{ kibana_url }}/api/fleet/agent_policies"
     elastic_username: "elastic"
     elastic_password: "elastic"
-    
+    kibana_system_password: "elastic"  # Password for the kibana_system user
+
   tasks:
     - name: Ensure git is installed
       apt:
@@ -39,19 +36,61 @@
       git:
         repo: "{{ git_repo }}"
         dest: "{{ git_dest }}"
-        version: main  # Specify branch or tag if needed
+        version: main
       register: git_clone
 
     - name: Build and run Docker containers using Docker Compose
-      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
+      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d --build
       args:
-        chdir: "{{ git_dest }}"  # Run this command in the cloned repo directory
+        chdir: "{{ git_dest }}"
 
     - name: Wait for Elasticsearch to become available
       wait_for:
         port: 9200
         delay: 10
         timeout: 60
+
+    - name: Wait for Elasticsearch to be healthy
+      uri:
+        url: "{{ elasticsearch_url }}/_cluster/health"
+        method: GET
+        return_content: yes
+        user: "{{ elastic_username }}"
+        password: "{{ elastic_password }}"
+      register: es_health
+      retries: 10
+      delay: 10
+      until: es_health.status == 200  # Wait until a 200 OK response is received
+
+    - name: Debug Elasticsearch health response
+      debug:
+        msg: "Elasticsearch health response: {{ es_health.content | from_json }}"
+
+    - name: Fail if Elasticsearch is not healthy
+      fail:
+        msg: "Elasticsearch cluster health is not green, actual status: {{ es_health.content | from_json }}."
+      when: es_health.content | from_json.status != 'green'
+
+    # Step 2: Set the Kibana password in Elasticsearch
+    - name: Configure Kibana System User Password
+      uri:
+        url: "{{ elasticsearch_url }}/_security/user/kibana_system/_password"
+        method: POST
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        body: |
+          {
+            "password": "{{ kibana_system_password }}"
+          }
+        user: "{{ elastic_username }}"
+        password: "{{ elastic_password }}"
+        status_code: 200
+      register: kibana_password_response
+
+    - name: Debug Kibana password configuration response
+      debug:
+        msg: "Kibana password configuration response: {{ kibana_password_response.json }}"
 
     - name: Wait for Kibana to become available
       wait_for:
@@ -60,8 +99,6 @@
         timeout: 60
 
     # Fleet Server Setup
-   
-     # Step 1: Create Fleet Server Policy via API
     - name: Create Fleet Server Policy in Kibana
       uri:
         url: "{{ kibana_api_url }}"
@@ -69,7 +106,7 @@
         body_format: json
         headers:
           Content-Type: "application/json"
-          kbn-xsrf: "true"  # Add kbn-xsrf header
+          kbn-xsrf: "true"
         body: |
           {
             "name": "Fleet Server Policy",
@@ -77,14 +114,14 @@
             "description": "Policy for Fleet Server",
             "is_default_fleet_server": true
           }
-        status_code: 200, 409 #409 means the policy already exists
+        status_code: 200, 409
         return_content: yes
       register: fleet_policy_response
 
     - name: Capture Fleet Server Policy "is_default_fleet_server"
       set_fact:
-        fleet_server_policy_id: "{{ fleet_policy_response.json.item.id}}"
+        fleet_server_policy_id: "{{ fleet_policy_response.json.item.id }}"
 
-    - name: Debug the Fleet Server Policy ID (optional)
+    - name: Debug the Fleet Server Policy ID
       debug:
         msg: "Fleet Server Policy ID: {{ fleet_server_policy_id }}"

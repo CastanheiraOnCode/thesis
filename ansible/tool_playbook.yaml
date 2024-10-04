@@ -6,6 +6,10 @@
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
     git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
     docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
+    fleet_server_image : "automation_fleet"
+    elastic_agent_imaghe: "automation_agent"
+    fleet_server_port : 8220
+    elastic_agent_port: 8221
 
   tasks:
     - name: Ensure git is installed
@@ -49,3 +53,24 @@
         port: 5601
         delay: 10
         timeout: 60
+
+    # Fleet Server Setup
+    - name: Build Fleet Server Docker image
+      command: docker build -t {{ fleet_server_image }} -f {{ git_dest }}/docker/Dockerfile.fleet {{ git_dest }}/docker
+
+    - name: Start Fleet Server container
+      command: docker run -d --name fleet-server -p {{ fleet_server_port }}:8220 {{ fleet_server_image }}
+
+    - name: Wait for Fleet Server to become available
+      wait_for:
+        port: 8220
+        delay: 10
+        timeout: 60
+    
+    - name: Generate Fleet Enrollment Token
+      command: docker exec fleet-server elastic-agent create-enrollment-token -f
+      register: enrollment_token
+
+    - name: Debug the enrollment token (optional)
+      debug:
+        msg: "Enrollment Token: {{ enrollment_token.stdout }}"

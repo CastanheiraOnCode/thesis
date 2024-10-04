@@ -1,0 +1,9 @@
+# Dockerfile.elastic-agent
+FROM docker.elastic.co/beats/elastic-agent:8.15.1
+
+# Expose the necessary port for communication
+EXPOSE 8221
+
+# Start Elastic Agent (we will pass the FLEET_ENROLLMENT_TOKEN as an environment variable dynamically)
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+CMD ["-e"]

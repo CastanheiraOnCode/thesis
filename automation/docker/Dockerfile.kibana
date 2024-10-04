@@ -3,6 +3,8 @@ FROM docker.elastic.co/kibana/kibana:8.15.1
 
 # Set necessary environment variables
 ENV ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+ENV KIBANA_USERNAME=elastic  # Set the username for Kibana
+ENV KIBANA_PASSWORD=elastic  # Set the password for Kibana
 
 # Expose Kibana's default port
 EXPOSE 5601

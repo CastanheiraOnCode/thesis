@@ -6,10 +6,9 @@
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
     git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
     docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
-    fleet_server_image : "automation_fleet"
-    elastic_agent_imaghe: "automation_agent"
-    fleet_server_port : 8220
-    elastic_agent_port: 8221
+    elastic_agent_image: "automation_agent"  # Corrected variable name
+    elasticsearch_url: "http://localhost:9200"  # Change to https:// if using SSL
+    kibana_url: "http://localhost:5601"          # Change to https:// if using SSL
 
   tasks:
     - name: Ensure git is installed
@@ -54,23 +53,29 @@
         delay: 10
         timeout: 60
 
-    # Fleet Server Setup
-    - name: Build Fleet Server Docker image
-      command: docker build -t {{ fleet_server_image }} -f {{ git_dest }}/docker/Dockerfile.fleet {{ git_dest }}/docker
+    # Install and configure Elastic Agent
+    - name: Build Elastic Agent Docker image
+      command: docker build -t {{ elastic_agent_image }} -f {{ git_dest }}/automation/docker/Dockerfile.elastic-agent {{ git_dest }}/automation/docker
 
-    - name: Start Fleet Server container
-      command: docker run -d --name fleet-server -p {{ fleet_server_port }}:8220 {{ fleet_server_image }}
+    - name: Start Elastic Agent container
+      command: >
+        docker run -d --name elastic-agent 
+        --network host 
+        -e ELASTICSEARCH_URL={{ elasticsearch_url }} 
+        -e KIBANA_URL={{ kibana_url }} 
+        -e ELASTIC_AGENT_AUTH="elastic:elastic"
+        {{ elastic_agent_image }}
 
-    - name: Wait for Fleet Server to become available
+    - name: Wait for Elastic Agent to become available
       wait_for:
-        port: 8220
+        port: 8220  # Adjust if the agent uses a different port
         delay: 10
         timeout: 60
-    
-    - name: Generate Fleet Enrollment Token
-      command: docker exec fleet-server elastic-agent create-enrollment-token -f
-      register: enrollment_token
 
-    - name: Debug the enrollment token (optional)
+    - name: Debug the Elastic Agent logs (optional)
+      command: docker logs elastic-agent
+      register: agent_logs
+
+    - name: Show Elastic Agent logs
       debug:
-        msg: "Enrollment Token: {{ enrollment_token.stdout }}"
+        msg: "{{ agent_logs.stdout }}"

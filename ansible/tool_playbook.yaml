@@ -60,7 +60,8 @@
     - name: Start Elastic Agent container
       command: >
         docker run -d --name elastic-agent 
-        --network host 
+        --network automation_default
+        -p 8221:8221
         -e ELASTICSEARCH_URL={{ elasticsearch_url }} 
         -e KIBANA_URL={{ kibana_url }} 
         -e ELASTIC_AGENT_AUTH="elastic:elastic"
@@ -68,7 +69,7 @@
 
     - name: Wait for Elastic Agent to become available
       wait_for:
-        port: 8220  # Adjust if the agent uses a different port
+        port: 8221  # Adjust if the agent uses a different port
         delay: 10
         timeout: 60
 

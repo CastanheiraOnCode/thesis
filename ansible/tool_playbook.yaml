@@ -10,8 +10,8 @@
     elastic_agent_image: "automation_agent"  # Corrected variable name
     elasticsearch_url: "http://localhost:9200"  # Change to https:// if using SSL
     kibana_url: "http://localhost:5601"          # Change to https:// if using SSL
-    new_user: "new_user"                         # Define new user
-    new_user_password: "<your_password>"         # Define password for the new user
+    new_user: "admin"                         # Define new user
+    new_user_password: "kibana"         # Define password for the new user
 
   tasks:
     - name: Ensure git is installed
@@ -54,7 +54,7 @@
       command: >
         curl -X POST "http://localhost:9200/_security/user/{{ new_user }}"
         -H "Content-Type: application/json"
-        -u elastic:elastic
+        -u elastic:kibana
         -d '{
           "password" : "{{ new_user_password }}",
           "roles" : [ "kibana_user" ]

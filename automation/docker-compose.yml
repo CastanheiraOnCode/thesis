@@ -21,8 +21,8 @@ services:
       dockerfile: Dockerfile.kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic  # Use the elastic user for Kibana
-      - ELASTICSEARCH_PASSWORD=kibana  # Same password as above
+      - ELASTICSEARCH_USERNAME=kibana  # Use the new user for Kibana
+      - ELASTICSEARCH_PASSWORD=kibana  # Password for the new user
     ports:
       - "5601:5601"
     depends_on:

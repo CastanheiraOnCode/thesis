@@ -7,10 +7,11 @@
     git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
     local_src: '/home/joao/Documents/dev/thesis'
     docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
-    docker_compose_template: 'automation/docker-compose.yml.j2'  # Path to the template
     elastic_agent_image: "automation_agent"  # Corrected variable name
     elasticsearch_url: "http://localhost:9200"  # Change to https:// if using SSL
     kibana_url: "http://localhost:5601"          # Change to https:// if using SSL
+    new_user: "kibana_user"  # New user for Kibana
+    new_user_password: "elastic"  # Password for the new user
 
   tasks:
     - name: Ensure git is installed
@@ -49,30 +50,50 @@
         delay: 10
         timeout: 60
 
-    - name: Delete existing Kibana service token (if it exists)
-      command: docker exec -i automation-elasticsearch-1 bin/elasticsearch-service-tokens invalidate elastic/kibana/default
-      register: delete_service_token
-      ignore_errors: yes  # Ignore errors if the token does not exist
+    - name: Create a new role for the Kibana user
+      command: >
+        curl -X POST "http://localhost:9200/_security/role/kibana_user_role" 
+        -H "Content-Type: application/json"
+        -u elastic:elastic 
+        -d '{
+          "cluster": ["all"],
+          "indices": [
+            {
+              "names": [ "*" ],
+              "privileges": ["read", "view_index_metadata", "manage"]
+            }
+          ]
+        }'
+      register: create_role
 
-    - name: Generate new service token for Kibana
-      command: docker exec -i automation-elasticsearch-1 bin/elasticsearch-service-tokens create elastic/kibana default
-      register: kibana_service_token
-      ignore_errors: yes  # Ignore errors if the creation fails
+    - name: Create a new user for Kibana
+      command: >
+        curl -X POST "http://localhost:9200/_security/user/{{ new_user }}" 
+        -H "Content-Type: application/json"
+        -u elastic:elastic 
+        -d '{
+          "password": "{{ new_user_password }}",
+          "roles": ["kibana_user_role"]
+        }'
+      register: create_user
 
-    - name: Extract service token from output
-      set_fact:
-        kibana_service_token_value: "{{ kibana_service_token.stdout | regex_search('elastic/kibana/default=(.*)', '\\1') }}"
-
-    - name: Debug the service token
+    - name: Debug new user creation output
       debug:
-        msg: "Kibana service token: {{ kibana_service_token_value }}"
+        msg: "User created: {{ create_user.stdout }}"
 
-    - name: Replace the contents of docker-compose.yml with the template
-      template:
-        src: "{{ local_src }}/{{ docker_compose_template }}"
-        dest: "{{ git_dest }}/{{ docker_compose_file }}"
-      vars:
-        KIBANA_SERVICE_TOKEN: "{{ kibana_service_token_value }}"
+    - name: Replace the Kibana configuration with the new user credentials
+      replace:
+        path: "{{ git_dest }}/{{ docker_compose_file }}"
+        regexp: 'ELASTICSEARCH_USERNAME=.*'
+        replace: "      - ELASTICSEARCH_USERNAME={{ new_user }}"
+      when: create_user.changed
+
+    - name: Replace the Kibana password
+      replace:
+        path: "{{ git_dest }}/{{ docker_compose_file }}"
+        regexp: 'ELASTICSEARCH_PASSWORD=.*'
+        replace: "      - ELASTICSEARCH_PASSWORD={{ new_user_password }}"
+      when: create_user.changed
 
     - name: Restart the Docker containers
       command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d

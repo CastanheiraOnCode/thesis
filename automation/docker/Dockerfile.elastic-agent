@@ -9,4 +9,5 @@ EXPOSE 8221
 
 # Start Elastic Agent (passing any environment variables dynamically)
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
-CMD ["-e"]
+CMD ["run", "-e", "-c", "/usr/share/elastic-agent/elastic-agent.yml"]
+

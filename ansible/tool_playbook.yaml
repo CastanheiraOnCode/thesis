@@ -47,33 +47,42 @@
         delay: 10
         timeout: 60
 
+    - name: Extract service token from output
+      set_fact:
+        kibana_service_token_value: "{{ kibana_service_token.stdout | regex_search('elastic/kibana/default=(.*)', '\\1') }}"
+    
+    - name: Generate service token for Kibana
+      command: docker exec -i elasticsearch bin/elasticsearch-service-tokens create kibana default
+      register: kibana_service_token
+
     - name: Wait for Kibana to become available
       wait_for:
         port: 5601
         delay: 10
         timeout: 60
 
-    # Install and configure Elastic Agent
-    - name: Build Elastic Agent Docker image
+    - name: Replace the Kibana service with service token in docker-compose.yml
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ git_dest }}/automation/docker-compose.yml"
+
+    - name: Restart the Docker containers
+      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
+      args:
+        chdir: "{{ git_dest }}"
+
+     # Build and run Elastic Agent in standalone mode
+    - name: Build Elastic Agent Docker image for standalone mode
       command: docker build -t {{ elastic_agent_image }} -f {{ git_dest }}/automation/docker/Dockerfile.elastic-agent {{ git_dest }}/automation/docker
 
-    - name: Start Elastic Agent container
+    - name: Start Elastic Agent container in standalone mode
       command: >
-        docker run -d --name elastic-agent 
+        docker run -d --name elastic-agent
         --network automation_default
         -p 8221:8221
-        -e ELASTICSEARCH_URL={{ elasticsearch_url }} 
-        -e KIBANA_URL={{ kibana_url }} 
-        -e ELASTIC_AGENT_AUTH="elastic:elastic"
         {{ elastic_agent_image }}
 
-    - name: Wait for Elastic Agent to become available
-      wait_for:
-        port: 8221  # Adjust if the agent uses a different port
-        delay: 10
-        timeout: 60
-
-    - name: Debug the Elastic Agent logs (optional)
+    - name: Debug Elastic Agent logs (optional)
       command: docker logs elastic-agent
       register: agent_logs
 

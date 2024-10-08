@@ -3,7 +3,7 @@ outputs:
     type: elasticsearch
     hosts: ["http://elasticsearch:9200"]
     username: "elastic"
-    password: "changeme"  # Use correct password
+    password: "elastic"  # Use correct password
 
 inputs:
   - type: log

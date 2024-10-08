@@ -1,3 +1,4 @@
+# docker-compose.yml.j2 (Template File)
 version: '3.8'
 
 services:
@@ -7,9 +8,8 @@ services:
       dockerfile: Dockerfile.elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=true  # Enable security for API keys
-      - xpack.security.authc.api_key.enabled=true  # Enable API key auth
-      - ELASTIC_PASSWORD=ełastic  # Set a password for the 'elastic' user
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -22,8 +22,7 @@ services:
       dockerfile: Dockerfile.kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=elastic
+      - ELASTICSEARCH_SERVICEACCOUNTTOKEN={{ kibana_service_token_value }}
     ports:
       - "5601:5601"
     depends_on:

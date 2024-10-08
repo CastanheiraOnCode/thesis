@@ -1,17 +1,19 @@
 ---
 - name: Pull Git Repository, Build and Run Docker Containers for ELK Stack
   hosts: all
-  become: yes  # Use this if you need to run commands as root
+  become: yes
   vars:
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
     git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
     local_src: '/home/joao/Documents/dev/thesis'
-    docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
-    elastic_agent_image: "automation_agent"  # Corrected variable name
-    elasticsearch_url: "http://localhost:9200"  # Change to https:// if using SSL
-    kibana_url: "http://localhost:5601"          # Change to https:// if using SSL
-    new_user: "admin"                         # Define new user
-    new_user_password: "kibana"         # Define password for the new user
+    elasticsearch_image: "docker.elastic.co/elasticsearch/elasticsearch:8.15.1"
+    kibana_image: "docker.elastic.co/kibana/kibana:8.15.1"
+    elastic_password: "elastic"       # Set your Elasticsearch password
+    kibana_password: "elastic"         # Set your Kibana password
+    elastic_agent_version: "8.15.2"    # Set your Elastic Agent version
+    elastic_agent_url: "https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-{{ elastic_agent_version }}-linux-x86_64.tar.gz"
+    extracted_dir: "/tmp/elastic-agent/elastic-agent-{{ elastic_agent_version }}-linux-x86_64"  # Directory where Elastic Agent is extracted
+    config_file_path: "./configs/elastic-agent.yml"  # Path to your custom config file
 
   tasks:
     - name: Ensure git is installed
@@ -26,11 +28,10 @@
         state: present
       when: ansible_os_family == "Debian"
 
-    - name: Ensure Docker Compose-v2 is installed
-      apt:
-        name: docker-compose-v2
-        state: present
-      when: ansible_os_family == "Debian"
+    - name: Create directory for Elastic Agent
+      file:
+        path: /tmp/elastic-agent
+        state: directory
 
     - name: Clone the Git repository
       git:
@@ -39,44 +40,48 @@
         version: main  # Specify branch or tag if needed
       register: git_clone
 
-    - name: Build and run Docker containers using Docker Compose
-      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
-      args:
-        chdir: "{{ git_dest }}"  # Run this command in the cloned repo directory
+    - name: Create Docker network for Elasticsearch and Kibana
+      command: docker network create elastic-net
+      ignore_errors: yes  # Ignore errors if the network already exists
+
+    - name: Run Elasticsearch container
+      command: >
+        docker run -p 127.0.0.1:9200:9200 -d --name elasticsearch --network elastic-net
+        -e ELASTIC_PASSWORD={{ elastic_password }}
+        -e "discovery.type=single-node"
+        -e "xpack.security.http.ssl.enabled=false"
+        -e "xpack.license.self_generated.type=basic"
+        {{ elasticsearch_image }}
+      register: elasticsearch_run
 
     - name: Wait for Elasticsearch to become available
       wait_for:
         port: 9200
-        delay: 10
+        delay: 20
         timeout: 60
 
-    - name: Create a new user in Elasticsearch
+    - name: Set Kibana password in Elasticsearch
       command: >
-        curl -X POST "http://localhost:9200/_security/user/{{ new_user }}"
-        -H "Content-Type: application/json"
-        -u elastic:kibana
-        -d '{
-          "password" : "{{ new_user_password }}",
-          "roles" : [ "kibana_user" ]
-        }'
-      register: create_user
+        docker exec elasticsearch curl -u elastic:{{ elastic_password }} -X POST
+        http://localhost:9200/_security/user/kibana_system/_password
+        -d '{"password":"{{ kibana_password }}"}'
+        -H 'Content-Type: application/json'
+      register: kibana_password_set
 
-    - name: Check if user creation was successful
+    - name: Check if Kibana password setting was successful
       debug:
-        var: create_user.stdout
+        var: kibana_password_set.stdout
 
-    - name: Update Kibana configuration
-      template:
-        src: "{{ local_src }}/automation/docker-compose.yml.j2"  # Update to your template path
-        dest: "{{ git_dest }}/{{ docker_compose_file }}"
-      vars:
-        KIBANA_USERNAME: "{{ new_user }}"
-        KIBANA_PASSWORD: "{{ new_user_password }}"
-
-    - name: Restart the Docker containers
-      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
-      args:
-        chdir: "{{ git_dest }}"
+    - name: Run Kibana container
+      command: >
+        docker run -p 127.0.0.1:5601:5601 -d --name kibana --network elastic-net
+        -e ELASTICSEARCH_URL=http://elasticsearch:9200
+        -e ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+        -e ELASTICSEARCH_USERNAME=kibana_system
+        -e ELASTICSEARCH_PASSWORD={{ kibana_password }}
+        -e "xpack.security.enabled=false"
+        -e "xpack.license.self_generated.type=basic"
+        {{ kibana_image }}
 
     - name: Wait for Kibana to become available
       wait_for:
@@ -84,24 +89,31 @@
         delay: 10
         timeout: 60
 
-    # Additional tasks for Elastic Agent can be added here...
+    - name: Download Elastic Agent
+      get_url:
+        url: "{{ elastic_agent_url }}"
+        dest: /tmp/elastic-agent-{{ elastic_agent_version }}-linux-x86_64.tar.gz
 
+    - name: Extract Elastic Agent
+      unarchive:
+        src: /tmp/elastic-agent-{{ elastic_agent_version }}-linux-x86_64.tar.gz
+        dest: /tmp/elastic-agent
+        remote_src: yes  # Indicates that the src file is already on the target machine
 
-    # Build and run Elastic Agent in standalone mode
-    - name: Build Elastic Agent Docker image for standalone mode
-      command: docker build -t {{ elastic_agent_image }} -f {{ git_dest }}/automation/docker/Dockerfile.elastic-agent {{ git_dest }}/automation/docker
+    - name: Clean up Elastic Agent tarball
+      file:
+        path: /tmp/elastic-agent-{{ elastic_agent_version }}-linux-x86_64.tar.gz
+        state: absent
 
-    - name: Start Elastic Agent container in standalone mode
-      command: >
-        docker run -d --name elastic-agent
-        --network automation_default
-        -p 8221:8221
-        {{ elastic_agent_image }}
+    # New Tasks:
+    - name: Replace elastic-agent.yml with the custom configuration
+      copy:
+        src: "{{ config_file_path }}"
+        dest: "{{ extracted_dir }}/elastic-agent.yml"
+        mode: '0644'
 
-    - name: Debug Elastic Agent logs (optional)
-      command: docker logs elastic-agent
-      register: agent_logs
-
-    - name: Show Elastic Agent logs
-      debug:
-        msg: "{{ agent_logs.stdout }}"
+    - name: Install Elastic Agent in standalone mode
+      command: "./elastic-agent install --non-interactive"
+      args:
+        chdir: "{{ extracted_dir }}"
+      become: yes

@@ -2,12 +2,12 @@
 FROM docker.elastic.co/beats/elastic-agent:8.15.1
 
 # Copy the custom elastic-agent.yml configuration file into the Elastic Agent container
-COPY configs/elastic-agent.yml /usr/share/elastic-agent/
+#COPY configs/elastic-agent.yml /usr/share/elastic-agent/
 
 # Expose the necessary port for communication
 EXPOSE 8221
 
 # Start Elastic Agent (passing any environment variables dynamically)
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
-CMD ["run", "-e", "-c", "/usr/share/elastic-agent/elastic-agent.yml"]
+CMD ["run", "-e",]
 

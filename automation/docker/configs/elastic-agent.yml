@@ -1,0 +1,21 @@
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://elasticsearch:9200"]
+    username: "elastic"
+    password: "changeme"  # Use correct password
+
+inputs:
+  - type: log
+    id: suricata-logs
+    enabled: true
+    streams:
+      - paths:
+          - /var/log/suricata/eve.json
+        index: "suricata-logs"
+
+agent:
+  monitoring:
+    enabled: true
+    logs: true
+    metrics: true

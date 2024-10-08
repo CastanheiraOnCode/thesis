@@ -6,8 +6,7 @@
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
     git_dest: '/home/joao-tese/repo'
     docker_compose_file: 'automation/docker-compose.yml'
-    elastic_password: "elastic"  # Password for 'elastic' user
-
+    
   tasks:
     - name: Ensure git is installed
       apt:
@@ -21,9 +20,9 @@
         state: present
       when: ansible_os_family == "Debian"
 
-    - name: Ensure Docker Compose-v2 is installed
+    - name: Ensure Docker Compose is installed
       apt:
-        name: docker-compose-v2
+        name: docker-compose
         state: present
       when: ansible_os_family == "Debian"
 
@@ -39,48 +38,12 @@
       args:
         chdir: "{{ git_dest }}"
 
-    - name: Wait for Elasticsearch to become available
-      wait_for:
-        port: 9200
-        delay: 10
-        timeout: 60
-
-    - name: Create service account token for Kibana
-      command: >
-        curl -X POST "http://localhost:9200/_security/service/elastic/kibana/credential/token/default"
-        -H "Content-Type: application/json"
-        -u elastic:{{ elastic_password }}
-      register: service_token_creation
-      ignore_errors: yes
-
-    - name: Extract service account token from output
-      set_fact:
-        kibana_service_token: "{{ service_token_creation.stdout | regex_search('token\":\"(.*?)\"', '\\1') }}"
-      when: service_token_creation is succeeded
-
-    - name: Debug the service token
-      debug:
-        msg: "Kibana service token: {{ kibana_service_token }}"
-
-    - name: Replace the contents of docker-compose.yml with the template
-      template:
-        src: "automation/docker-compose.yml.j2"  # Ensure you have a template with the service token
-        dest: "{{ git_dest }}/{{ docker_compose_file }}"
-      vars:
-        KIBANA_SERVICE_TOKEN: "{{ kibana_service_token }}"
-
-    - name: Restart the Docker containers
-      command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
-      args:
-        chdir: "{{ git_dest }}"
-
     - name: Wait for Kibana to become available
       wait_for:
         port: 5601
         delay: 10
         timeout: 60
 
-    # Other tasks for building and running Elastic Agent
 
     # Build and run Elastic Agent in standalone mode
     - name: Build Elastic Agent Docker image for standalone mode

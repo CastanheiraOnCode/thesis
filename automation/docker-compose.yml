@@ -7,9 +7,8 @@ services:
       dockerfile: Dockerfile.elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=true
-      - xpack.security.authc.api_key.enabled=true
-      - ELASTIC_PASSWORD=elastic  # Keep this if you want to use 'elastic' user for other purposes
+      - xpack.security.enabled=true  # Enable security features
+      - ELASTIC_PASSWORD=kibana # Set the password for the 'elastic' user
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -22,7 +21,8 @@ services:
       dockerfile: Dockerfile.kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_SERVICEACCOUNTTOKEN={{ KIBANA_SERVICE_TOKEN }}  # Placeholder for service account token
+      - ELASTICSEARCH_USERNAME=elastic  # Use the elastic user for Kibana
+      - ELASTICSEARCH_PASSWORD=kibana  # Same password as above
     ports:
       - "5601:5601"
     depends_on:

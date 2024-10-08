@@ -1,17 +1,12 @@
 ---
 - name: Pull Git Repository, Build and Run Docker Containers for ELK Stack
   hosts: all
-  become: yes  # Use this if you need to run commands as root
+  become: yes
   vars:
     git_repo: 'https://github.com/CastanheiraOnCode/thesis.git'
-    git_dest: '/home/joao-tese/repo'  # Local path to clone the repo
-    local_src: '/home/joao/Documents/dev/thesis'
-    docker_compose_file: 'automation/docker-compose.yml'  # Path to Docker Compose file inside automation folder
-    elastic_agent_image: "automation_agent"  # Corrected variable name
-    elasticsearch_url: "http://localhost:9200"  # Change to https:// if using SSL
-    kibana_url: "http://localhost:5601"          # Change to https:// if using SSL
-    new_user: "kibana_user"  # New user for Kibana
-    new_user_password: "elastic"  # Password for the new user
+    git_dest: '/home/joao-tese/repo'
+    docker_compose_file: 'automation/docker-compose.yml'
+    elastic_password: "elastic"  # Password for 'elastic' user
 
   tasks:
     - name: Ensure git is installed
@@ -36,13 +31,13 @@
       git:
         repo: "{{ git_repo }}"
         dest: "{{ git_dest }}"
-        version: main  # Specify branch or tag if needed
+        version: main
       register: git_clone
 
     - name: Build and run Docker containers using Docker Compose
       command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
       args:
-        chdir: "{{ git_dest }}"  # Run this command in the cloned repo directory
+        chdir: "{{ git_dest }}"
 
     - name: Wait for Elasticsearch to become available
       wait_for:
@@ -50,50 +45,29 @@
         delay: 10
         timeout: 60
 
-    - name: Create a new role for the Kibana user
+    - name: Create service account token for Kibana
       command: >
-        curl -X POST "http://localhost:9200/_security/role/kibana_user_role" 
+        curl -X POST "http://localhost:9200/_security/service/elastic/kibana/credential/token/default"
         -H "Content-Type: application/json"
-        -u elastic:elastic 
-        -d '{
-          "cluster": ["all"],
-          "indices": [
-            {
-              "names": [ "*" ],
-              "privileges": ["read", "view_index_metadata", "manage"]
-            }
-          ]
-        }'
-      register: create_role
+        -u elastic:{{ elastic_password }}
+      register: service_token_creation
+      ignore_errors: yes
 
-    - name: Create a new user for Kibana
-      command: >
-        curl -X POST "http://localhost:9200/_security/user/{{ new_user }}" 
-        -H "Content-Type: application/json"
-        -u elastic:elastic 
-        -d '{
-          "password": "{{ new_user_password }}",
-          "roles": ["kibana_user_role"]
-        }'
-      register: create_user
+    - name: Extract service account token from output
+      set_fact:
+        kibana_service_token: "{{ service_token_creation.stdout | regex_search('token\":\"(.*?)\"', '\\1') }}"
+      when: service_token_creation is succeeded
 
-    - name: Debug new user creation output
+    - name: Debug the service token
       debug:
-        msg: "User created: {{ create_user.stdout }}"
+        msg: "Kibana service token: {{ kibana_service_token }}"
 
-    - name: Replace the Kibana configuration with the new user credentials
-      replace:
-        path: "{{ git_dest }}/{{ docker_compose_file }}"
-        regexp: 'ELASTICSEARCH_USERNAME=.*'
-        replace: "      - ELASTICSEARCH_USERNAME={{ new_user }}"
-      when: create_user.changed
-
-    - name: Replace the Kibana password
-      replace:
-        path: "{{ git_dest }}/{{ docker_compose_file }}"
-        regexp: 'ELASTICSEARCH_PASSWORD=.*'
-        replace: "      - ELASTICSEARCH_PASSWORD={{ new_user_password }}"
-      when: create_user.changed
+    - name: Replace the contents of docker-compose.yml with the template
+      template:
+        src: "automation/docker-compose.yml.j2"  # Ensure you have a template with the service token
+        dest: "{{ git_dest }}/{{ docker_compose_file }}"
+      vars:
+        KIBANA_SERVICE_TOKEN: "{{ kibana_service_token }}"
 
     - name: Restart the Docker containers
       command: docker compose -f "{{ git_dest }}/{{ docker_compose_file }}" up -d
@@ -105,6 +79,8 @@
         port: 5601
         delay: 10
         timeout: 60
+
+    # Other tasks for building and running Elastic Agent
 
     # Build and run Elastic Agent in standalone mode
     - name: Build Elastic Agent Docker image for standalone mode

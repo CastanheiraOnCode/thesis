@@ -9,7 +9,7 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=true  # Enable security for API keys
       - xpack.security.authc.api_key.enabled=true  # Enable API key auth
-      - ELASTIC_PASSWORD=ełastic  # Set a password for the 'elastic' user
+      - ELASTIC_PASSWORD=elastic  # Set a password for the 'elastic' user
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -22,7 +22,7 @@ services:
       dockerfile: Dockerfile.kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_USERNAME=elastic  # Using the elastic user initially to set up
       - ELASTICSEARCH_PASSWORD=elastic
     ports:
       - "5601:5601"

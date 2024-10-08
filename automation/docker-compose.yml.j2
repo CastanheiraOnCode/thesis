@@ -22,6 +22,8 @@ services:
       dockerfile: Dockerfile.kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=elastic
       - ELASTICSEARCH_SERVICEACCOUNTTOKEN={{ kibana_service_token_value }}
     ports:
       - "5601:5601"

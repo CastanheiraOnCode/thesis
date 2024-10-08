@@ -63,6 +63,10 @@
       set_fact:
         kibana_service_token_value: "{{ kibana_service_token.stdout | regex_search('elastic/kibana/default=(.*)', '\\1') }}"
 
+    - name: Debug the service token
+      debug:
+        msg: "Kibana service token: {{ kibana_service_token_value }}"
+
     - name: Replace the contents of docker-compose.yml with the template
       template:
         src: "{{ local_src }}/{{ docker_compose_template }}"

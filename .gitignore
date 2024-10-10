@@ -1,0 +1,44 @@
+# Binaries for programs and libraries
+/target/
+
+# Build artifacts
+**/*.rs.bk
+
+# If you're using Cargo (Rust's package manager)
+Cargo.lock
+Cargo.toml.orig
+
+# Ignore the built documentation
+/target/doc/
+
+# Output from running tests, benchmarks, etc.
+/target/debug/
+/target/release/
+
+# Incremental compilation files
+/target/.rustc_info.json
+/target/.cargo-lock
+/target/.cargo-check
+
+# Ignore the Rust Language Server (RLS) files
+/rls/
+
+# Ignore generated coverage files
+*.profraw
+
+# Backup files created by editors
+*.swp
+*.swo
+*.bak
+
+# If you're using IDEs like Visual Studio Code or JetBrains
+# VSCode
+.vscode/
+# JetBrains
+.idea/
+
+# If you're using Mac OS
+.DS_Store
+
+# If you're using Windows
+Thumbs.db

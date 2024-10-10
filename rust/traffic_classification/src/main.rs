@@ -44,33 +44,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response_body = response.json::<Value>().await?;
 
     // Extract hits from the response body
-    if let Some(hits) = response_body["hits"]["hits"].as_array() {
-        // Iterate over each hit
-        for hit in hits {
-            // Each `hit` is a JSON object, you can access its fields
+    // Iterate over each hit
+    for hit in response_body["hits"]["hits"].as_array().unwrap() {
+        // Each `hit` is a JSON object, you can access its fields
+        // The flow info is stored in the _source field
+        let flow = &hit["_source"];
+        
 
-            // The flow info is stored in the _source field
-            let flow = &hit["_source"];
-            
-
-            if let Some(flow_object) = flow.as_object(){
-                for (field_name, field_value) in flow_object {
-                println!("{}: {:?}", field_name, field_value);
-                }
+        if let Some(flow_object) = flow.as_object(){
+            for (field_name, field_value) in flow_object {
+            println!("{}: {:?}", field_name, field_value);
             }
-
-            //Let's populate the flow structure
-            let flow_timestamp = &flow["@timestamp"];
-            let flow_example = flow::Flow{
-                timestamp: flow_timestamp.to_string(),
-            };
-            println!("{:?}\n", flow);
-            println!("{:?}\n", flow_example.timestamp);
         }
-    } else {
-        println!("No hits found.");
-    }
 
+        //Let's populate the flow structure
+        let flow_timestamp = &flow["@timestamp"];
+        let flow_example = flow::Flow{
+            timestamp: flow_timestamp.to_string(),
+        };
+        println!("{:?}\n", flow);
+        print!("\n");
+        println!("{:?}\n", flow_example.timestamp);
+    }
 
     Ok(())
 }

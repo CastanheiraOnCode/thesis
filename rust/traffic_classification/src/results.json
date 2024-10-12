@@ -1,154 +1,7 @@
-@timestamp: String("2024-10-10T18:25:15.556Z")
-agent: Object {
-    "ephemeral_id": String("82da11d3-7836-4821-983e-8503f84194c4"),
-    "id": String("4b7b977e-e7a5-4027-8131-526d01b3f4c2"),
-    "name": String("joao-victus"),
-    "type": String("filebeat"),
-    "version": String("8.15.2")
-}
-data_stream: Object {
-    "dataset": String("suricata.eve"),
-    "namespace": String("default"),
-    "type": String("logs")
-}
-destination: Object {
-    "address": String("2001:08a0:ee80:1a00:0000:0000:0000:0001"),
-    "as": Object {
-        "number": Number(3243),
-        "organization": Object {
-            "name": String("Servicos De Comunicacoes E Multimedia S.A.")
-        }
-    },
-    "geo": Object {
-        "city_name": String("Aveiro"),
-        "continent_name": String("Europe"),
-        "country_iso_code": String("PT"),
-        "country_name": String("Portugal"),
-        "location": Object {
-            "lat": Number(40.6501),
-            "lon": Number(-8.6502)
-        },
-        "region_iso_code": String("PT-01"),
-        "region_name": String("Aveiro")
-    },
-    "ip": String("2001:08a0:ee80:1a00:0000:0000:0000:0001"),
-    "port": Number(53)
-}
-dns: Object {
-    "answers": Array [Object {
-            "data": String("34.95.113.255"),
-            "name": String("telemetry.elastic.co"),
-            "ttl": Number(293),
-            "type": String("A")
-        }
-    ],
-    "header_flags": Array [String("RD"), String("RA")
-    ],
-    "id": String("41525"),
-    "question": Object {
-        "name": String("telemetry.elastic.co"),
-        "registered_domain": String("elastic.co"),
-        "subdomain": String("telemetry"),
-        "top_level_domain": String("co"),
-        "type": String("A")
-    },
-    "resolved_ip": Array [String("34.95.113.255")
-    ],
-    "response_code": String("NOERROR"),
-    "type": String("answer")
-}
-ecs: Object {
-    "version": String("8.11.0")
-}
-elastic_agent: Object {
-    "id": String("4b7b977e-e7a5-4027-8131-526d01b3f4c2"),
-    "snapshot": Bool(false),
-    "version": String("8.15.2")
-}
-event: Object {
-    "agent_id_status": String("auth_metadata_missing"),
-    "category": Array [String("network")
-    ],
-    "created": String("2024-10-10T18:25:18.144Z"),
-    "dataset": String("suricata.eve"),
-    "ingested": String("2024-10-10T18:25:20Z"),
-    "kind": String("event"),
-    "type": Array [String("protocol")
-    ]
-}
-input: Object {
-    "type": String("log")
-}
-log: Object {
-    "file": Object {
-        "path": String("/var/log/suricata/eve.json")
-    },
-    "offset": Number(16389378)
-}
-network: Object {
-    "community_id": String("1:iPUPfeUbBg7pskGqqu3RL40mud8="),
-    "protocol": String("dns"),
-    "transport": String("udp")
-}
-observer: Object {
-    "hostname": String("joao-victus"),
-    "ip": Array [String("192.168.1.155"), String("2001:8a0:ee80:1a00:775d:568d:5fde:3fbb"), String("fe80::2133:17c0:a70a:3914"), String("192.168.1.68"), String("2001:8a0:ee80:1a00:8f1c:90c4:1f95:5b0a"), String("fe80::4605:41f7:1dac:79eb"), String("172.18.0.1"), String("fe80::42:4fff:feea:45b"), String("172.17.0.1"), String("fe80::6c7c:61ff:fef7:74c3"), String("fe80::fca8:b9ff:fe04:a63d")
-    ],
-    "mac": Array [String("02-42-4F-EA-04-5B"), String("02-42-C1-55-92-38"), String("4C-D5-77-F7-3A-E1"), String("6E-7C-61-F7-74-C3"), String("A8-B1-3B-79-CA-43"), String("FE-A8-B9-04-A6-3D")
-    ],
-    "product": String("Suricata"),
-    "type": String("ids"),
-    "vendor": String("OISF")
-}
-related: Object {
-    "ip": Array [String("34.95.113.255"), String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"), String("2001:08a0:ee80:1a00:0000:0000:0000:0001")
-    ]
-}
-source: Object {
-    "address": String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"),
-    "as": Object {
-        "number": Number(3243),
-        "organization": Object {
-            "name": String("Servicos De Comunicacoes E Multimedia S.A.")
-        }
-    },
-    "geo": Object {
-        "city_name": String("Aveiro"),
-        "continent_name": String("Europe"),
-        "country_iso_code": String("PT"),
-        "country_name": String("Portugal"),
-        "location": Object {
-            "lat": Number(40.6501),
-            "lon": Number(-8.6502)
-        },
-        "region_iso_code": String("PT-01"),
-        "region_name": String("Aveiro")
-    },
-    "ip": String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"),
-    "port": Number(53528)
-}
-suricata: Object {
-    "eve": Object {
-        "dns": Object {
-            "id": Number(41525),
-            "opcode": Number(0),
-            "rcode": String("NOERROR"),
-            "rrname": String("telemetry.elastic.co"),
-            "rrtype": String("A"),
-            "type": String("answer")
-        },
-        "event_type": String("dns"),
-        "flow_id": String("945098563464719"),
-        "in_iface": String("eno1"),
-        "pkt_src": String("wire/pcap")
-    }
-}
-tags: Array [String("forwarded"), String("suricata-eve")
-]
-Object {
-    "@timestamp": String("2024-10-10T18:25:15.556Z"),
+{
+    "@timestamp": String("2024-10-12T08:49:06.387Z"),
     "agent": Object {
-        "ephemeral_id": String("82da11d3-7836-4821-983e-8503f84194c4"),
+        "ephemeral_id": String("52461532-afa4-4ee3-b55b-91f3f1207355"),
         "id": String("4b7b977e-e7a5-4027-8131-526d01b3f4c2"),
         "name": String("joao-victus"),
         "type": String("filebeat"),
@@ -160,50 +13,29 @@ Object {
         "type": String("logs")
     },
     "destination": Object {
-        "address": String("2001:08a0:ee80:1a00:0000:0000:0000:0001"),
+        "address": String("2a04:4e42:0086:0000:0000:0000:0000:0760"),
         "as": Object {
-            "number": Number(3243),
+            "number": Number(54113),
             "organization": Object {
-                "name": String("Servicos De Comunicacoes E Multimedia S.A.")
+                "name": String("FASTLY")
             }
         },
+        "bytes": Number(6590),
         "geo": Object {
-            "city_name": String("Aveiro"),
+            "city_name": String("Lisbon"),
             "continent_name": String("Europe"),
             "country_iso_code": String("PT"),
             "country_name": String("Portugal"),
             "location": Object {
-                "lat": Number(40.6501),
-                "lon": Number(-8.6502)
+                "lat": Number(38.731),
+                "lon": Number(-9.1373)
             },
-            "region_iso_code": String("PT-01"),
-            "region_name": String("Aveiro")
+            "region_iso_code": String("PT-11"),
+            "region_name": String("Lisbon")
         },
-        "ip": String("2001:08a0:ee80:1a00:0000:0000:0000:0001"),
-        "port": Number(53)
-    },
-    "dns": Object {
-        "answers": Array [Object {
-                "data": String("34.95.113.255"),
-                "name": String("telemetry.elastic.co"),
-                "ttl": Number(293),
-                "type": String("A")
-            }
-        ],
-        "header_flags": Array [String("RD"), String("RA")
-        ],
-        "id": String("41525"),
-        "question": Object {
-            "name": String("telemetry.elastic.co"),
-            "registered_domain": String("elastic.co"),
-            "subdomain": String("telemetry"),
-            "top_level_domain": String("co"),
-            "type": String("A")
-        },
-        "resolved_ip": Array [String("34.95.113.255")
-        ],
-        "response_code": String("NOERROR"),
-        "type": String("answer")
+        "ip": String("2a04:4e42:0086:0000:0000:0000:0000:0760"),
+        "packets": Number(14),
+        "port": Number(443)
     },
     "ecs": Object {
         "version": String("8.11.0")
@@ -217,11 +49,14 @@ Object {
         "agent_id_status": String("auth_metadata_missing"),
         "category": Array [String("network")
         ],
-        "created": String("2024-10-10T18:25:18.144Z"),
+        "created": String("2024-10-12T08:49:06.514Z"),
         "dataset": String("suricata.eve"),
-        "ingested": String("2024-10-10T18:25:20Z"),
+        "duration": Number(3462000000),
+        "end": String("2024-10-12T08:48:04.198Z"),
+        "ingested": String("2024-10-12T08:50:21Z"),
         "kind": String("event"),
-        "type": Array [String("protocol")
+        "start": String("2024-10-12T08:48:00.736Z"),
+        "type": Array [String("connection"), String("end")
         ]
     },
     "input": Object {
@@ -231,25 +66,27 @@ Object {
         "file": Object {
             "path": String("/var/log/suricata/eve.json")
         },
-        "offset": Number(16389378)
+        "offset": Number(44904271)
     },
     "network": Object {
-        "community_id": String("1:iPUPfeUbBg7pskGqqu3RL40mud8="),
-        "protocol": String("dns"),
-        "transport": String("udp")
+        "bytes": Number(10403),
+        "community_id": String("1:7Q9y2r0fAnNNkEI3CGcQ2jQqmec="),
+        "packets": Number(29),
+        "protocol": String("tls"),
+        "transport": String("tcp")
     },
     "observer": Object {
         "hostname": String("joao-victus"),
-        "ip": Array [String("192.168.1.155"), String("2001:8a0:ee80:1a00:775d:568d:5fde:3fbb"), String("fe80::2133:17c0:a70a:3914"), String("192.168.1.68"), String("2001:8a0:ee80:1a00:8f1c:90c4:1f95:5b0a"), String("fe80::4605:41f7:1dac:79eb"), String("172.18.0.1"), String("fe80::42:4fff:feea:45b"), String("172.17.0.1"), String("fe80::6c7c:61ff:fef7:74c3"), String("fe80::fca8:b9ff:fe04:a63d")
+        "ip": Array [String("192.168.1.155"), String("2001:8a0:ee80:1a00:775d:568d:5fde:3fbb"), String("fe80::2133:17c0:a70a:3914"), String("172.18.0.1"), String("172.17.0.1")
         ],
-        "mac": Array [String("02-42-4F-EA-04-5B"), String("02-42-C1-55-92-38"), String("4C-D5-77-F7-3A-E1"), String("6E-7C-61-F7-74-C3"), String("A8-B1-3B-79-CA-43"), String("FE-A8-B9-04-A6-3D")
+        "mac": Array [String("02-42-30-9D-08-DE"), String("02-42-EC-2B-CB-87"), String("A8-B1-3B-79-CA-43"), String("D6-FB-B8-AB-79-D5")
         ],
         "product": String("Suricata"),
         "type": String("ids"),
         "vendor": String("OISF")
     },
     "related": Object {
-        "ip": Array [String("34.95.113.255"), String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"), String("2001:08a0:ee80:1a00:0000:0000:0000:0001")
+        "ip": Array [String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"), String("2a04:4e42:0086:0000:0000:0000:0000:0760")
         ]
     },
     "source": Object {
@@ -260,6 +97,7 @@ Object {
                 "name": String("Servicos De Comunicacoes E Multimedia S.A.")
             }
         },
+        "bytes": Number(3813),
         "geo": Object {
             "city_name": String("Aveiro"),
             "continent_name": String("Europe"),
@@ -273,22 +111,33 @@ Object {
             "region_name": String("Aveiro")
         },
         "ip": String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"),
-        "port": Number(53528)
+        "packets": Number(15),
+        "port": Number(48810)
     },
     "suricata": Object {
         "eve": Object {
-            "dns": Object {
-                "id": Number(41525),
-                "opcode": Number(0),
-                "rcode": String("NOERROR"),
-                "rrname": String("telemetry.elastic.co"),
-                "rrtype": String("A"),
-                "type": String("answer")
+            "event_type": String("flow"),
+            "flow": Object {
+                "age": Number(4),
+                "alerted": Bool(false),
+                "reason": String("timeout"),
+                "state": String("closed")
             },
-            "event_type": String("dns"),
-            "flow_id": String("945098563464719"),
+            "flow_id": String("65051229156411"),
             "in_iface": String("eno1"),
-            "pkt_src": String("wire/pcap")
+            "tcp": Object {
+                "ack": Bool(true),
+                "fin": Bool(true),
+                "psh": Bool(true),
+                "rst": Bool(true),
+                "state": String("closed"),
+                "syn": Bool(true),
+                "tc_max_regions": Number(1),
+                "tcp_flags": String("1f"),
+                "tcp_flags_tc": String("1b"),
+                "tcp_flags_ts": String("1f"),
+                "ts_max_regions": Number(1)
+            }
         }
     },
     "tags": Array [String("forwarded"), String("suricata-eve")

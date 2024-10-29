@@ -42,3 +42,5 @@ Cargo.toml.orig
 
 # If you're using Windows
 Thumbs.db
+
+/papers/

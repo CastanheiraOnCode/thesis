@@ -27,6 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = Elasticsearch::new(transport);
 
     // Querying Suricata Index - paginated request to do, retrieving up to 10000 documents
+    // add geo location
     let response = client
         .search(SearchParts::Index(&[".ds-logs-suricata.eve-default-2024.10.10-000002"]))
         .body(serde_json::json!({

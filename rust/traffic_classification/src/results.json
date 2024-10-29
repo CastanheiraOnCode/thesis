@@ -1,145 +1,155 @@
-{
-    "@timestamp": String("2024-10-12T08:49:06.387Z"),
-    "agent": Object {
-        "ephemeral_id": String("52461532-afa4-4ee3-b55b-91f3f1207355"),
-        "id": String("4b7b977e-e7a5-4027-8131-526d01b3f4c2"),
-        "name": String("joao-victus"),
-        "type": String("filebeat"),
-        "version": String("8.15.2")
-    },
-    "data_stream": Object {
-        "dataset": String("suricata.eve"),
-        "namespace": String("default"),
-        "type": String("logs")
-    },
-    "destination": Object {
-        "address": String("2a04:4e42:0086:0000:0000:0000:0000:0760"),
-        "as": Object {
-            "number": Number(54113),
-            "organization": Object {
-                "name": String("FASTLY")
-            }
-        },
-        "bytes": Number(6590),
-        "geo": Object {
-            "city_name": String("Lisbon"),
-            "continent_name": String("Europe"),
-            "country_iso_code": String("PT"),
-            "country_name": String("Portugal"),
-            "location": Object {
-                "lat": Number(38.731),
-                "lon": Number(-9.1373)
-            },
-            "region_iso_code": String("PT-11"),
-            "region_name": String("Lisbon")
-        },
-        "ip": String("2a04:4e42:0086:0000:0000:0000:0000:0760"),
-        "packets": Number(14),
-        "port": Number(443)
-    },
-    "ecs": Object {
-        "version": String("8.11.0")
-    },
-    "elastic_agent": Object {
-        "id": String("4b7b977e-e7a5-4027-8131-526d01b3f4c2"),
-        "snapshot": Bool(false),
-        "version": String("8.15.2")
-    },
-    "event": Object {
-        "agent_id_status": String("auth_metadata_missing"),
-        "category": Array [String("network")
-        ],
-        "created": String("2024-10-12T08:49:06.514Z"),
-        "dataset": String("suricata.eve"),
-        "duration": Number(3462000000),
-        "end": String("2024-10-12T08:48:04.198Z"),
-        "ingested": String("2024-10-12T08:50:21Z"),
-        "kind": String("event"),
-        "start": String("2024-10-12T08:48:00.736Z"),
-        "type": Array [String("connection"), String("end")
-        ]
-    },
-    "input": Object {
-        "type": String("log")
-    },
-    "log": Object {
-        "file": Object {
-            "path": String("/var/log/suricata/eve.json")
-        },
-        "offset": Number(44904271)
-    },
-    "network": Object {
-        "bytes": Number(10403),
-        "community_id": String("1:7Q9y2r0fAnNNkEI3CGcQ2jQqmec="),
-        "packets": Number(29),
-        "protocol": String("tls"),
-        "transport": String("tcp")
-    },
-    "observer": Object {
-        "hostname": String("joao-victus"),
-        "ip": Array [String("192.168.1.155"), String("2001:8a0:ee80:1a00:775d:568d:5fde:3fbb"), String("fe80::2133:17c0:a70a:3914"), String("172.18.0.1"), String("172.17.0.1")
-        ],
-        "mac": Array [String("02-42-30-9D-08-DE"), String("02-42-EC-2B-CB-87"), String("A8-B1-3B-79-CA-43"), String("D6-FB-B8-AB-79-D5")
-        ],
-        "product": String("Suricata"),
-        "type": String("ids"),
-        "vendor": String("OISF")
-    },
-    "related": Object {
-        "ip": Array [String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"), String("2a04:4e42:0086:0000:0000:0000:0000:0760")
-        ]
-    },
-    "source": Object {
-        "address": String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"),
-        "as": Object {
-            "number": Number(3243),
-            "organization": Object {
-                "name": String("Servicos De Comunicacoes E Multimedia S.A.")
-            }
-        },
-        "bytes": Number(3813),
-        "geo": Object {
-            "city_name": String("Aveiro"),
-            "continent_name": String("Europe"),
-            "country_iso_code": String("PT"),
-            "country_name": String("Portugal"),
-            "location": Object {
-                "lat": Number(40.6501),
-                "lon": Number(-8.6502)
-            },
-            "region_iso_code": String("PT-01"),
-            "region_name": String("Aveiro")
-        },
-        "ip": String("2001:08a0:ee80:1a00:775d:568d:5fde:3fbb"),
-        "packets": Number(15),
-        "port": Number(48810)
-    },
-    "suricata": Object {
-        "eve": Object {
-            "event_type": String("flow"),
-            "flow": Object {
-                "age": Number(4),
-                "alerted": Bool(false),
-                "reason": String("timeout"),
-                "state": String("closed")
-            },
-            "flow_id": String("65051229156411"),
-            "in_iface": String("eno1"),
-            "tcp": Object {
-                "ack": Bool(true),
-                "fin": Bool(true),
-                "psh": Bool(true),
-                "rst": Bool(true),
-                "state": String("closed"),
-                "syn": Bool(true),
-                "tc_max_regions": Number(1),
-                "tcp_flags": String("1f"),
-                "tcp_flags_tc": String("1b"),
-                "tcp_flags_ts": String("1f"),
-                "ts_max_regions": Number(1)
-            }
-        }
-    },
-    "tags": Array [String("forwarded"), String("suricata-eve")
-    ]
+
+"_index": ".ds-logs-suricata.eve-default-2024.10.10-000002",
+"_id": "SmfXmZIBq4N63qJJIsOb",
+"_version": 1,
+"_score": null,
+"fields": {
+  "event.category": [
+    "network"
+  ],
+  "observer.vendor": [
+    "OISF"
+  ],
+  "source.ip": [
+    "192.168.1.155"
+  ],
+  "destination.address": [
+    "192.168.1.254"
+  ],
+  "suricata.eve.event_type": [
+    "flow"
+  ],
+  "suricata.eve.flow.reason": [
+    "timeout"
+  ],
+  "network.community_id": [
+    "1:pGbK5ReKuH7+ZSEJeSDpx0I2RaM="
+  ],
+  "observer.mac": [
+    "02-42-24-27-B5-7D",
+    "02-42-79-79-1C-41",
+    "4C-D5-77-F7-3A-E1",
+    "5A-EE-3B-34-29-DA",
+    "A8-B1-3B-79-CA-43",
+    "B6-DB-6C-B8-BD-5A"
+  ],
+  "event.agent_id_status": [
+    "auth_metadata_missing"
+  ],
+  "event.kind": [
+    "event"
+  ],
+  "suricata.eve.flow_id": [
+    "1538044009200038"
+  ],
+  "source.packets": [
+    2
+  ],
+  "network.packets": [
+    4
+  ],
+  "input.type": [
+    "log"
+  ],
+  "suricata.eve.in_iface": [
+    "eno1"
+  ],
+  "tags": [
+    "forwarded",
+    "suricata-eve"
+  ],
+  "source.port": [
+    36335
+  ],
+  "observer.type": [
+    "ids"
+  ],
+  "event.created": [
+    "2024-10-17T09:37:36.132Z"
+  ],
+  "destination.bytes": [
+    216
+  ],
+  "event.start": [
+    "2024-10-17T09:32:29.489Z"
+  ],
+  "observer.ip": [
+    "192.168.1.155",
+    "2001:8a0:ee80:1a00:775d:568d:5fde:3fbb",
+    "fe80::2133:17c0:a70a:3914",
+    "192.168.1.68",
+    "2001:8a0:ee80:1a00:8f1c:90c4:1f95:5b0a",
+    "fe80::4605:41f7:1dac:79eb",
+    "172.18.0.1",
+    "fe80::42:79ff:fe79:1c41",
+    "172.17.0.1",
+    "fe80::58ee:3bff:fe34:29da",
+    "fe80::b4db:6cff:feb8:bd5a"
+  ],
+  "destination.port": [
+    53
+  ],
+  "event.end": [
+    "2024-10-17T09:32:29.498Z"
+  ],
+  "source.address": [
+    "192.168.1.155"
+  ],
+  "destination.packets": [
+    2
+  ],
+  "event.module": [
+    "suricata"
+  ],
+  "network.protocol": [
+    "dns"
+  ],
+  "suricata.eve.flow.state": [
+    "established"
+  ],
+  "related.ip": [
+    "192.168.1.155",
+    "192.168.1.254"
+  ],
+  "network.bytes": [
+    388
+  ],
+  "observer.product": [
+    "Suricata"
+  ],
+  "source.bytes": [
+    172
+  ],
+  "suricata.eve.flow.alerted": [
+    false
+  ],
+  "suricata.eve.flow.age": [
+    0
+  ],
+  "destination.ip": [
+    "192.168.1.254"
+  ],
+  "observer.hostname": [
+    "joao-victus"
+  ],
+  "network.transport": [
+    "udp"
+  ],
+  "event.duration": [
+    9000000
+  ],
+  "event.ingested": [
+    "2024-10-17T09:37:46.000Z"
+  ],
+  "event.type": [
+    "connection"
+  ],
+  "event.dataset": [
+    "suricata.eve"
+  ]
+},
+"sort": [
+  "2024-10-17T09:37:34.448Z",
+  0
+]
 }
